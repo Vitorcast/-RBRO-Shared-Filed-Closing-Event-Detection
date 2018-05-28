@@ -16,11 +16,23 @@ namespace OpenFileTest
         public FileMonitor()
         {
             this.proc = new Process();
-            this.proc.StartInfo.FileName = "openfiles.exe";
-            this.proc.StartInfo.Arguments = "/query /FO CSV /v";
-            this.proc.StartInfo.UseShellExecute = false;
-            this.proc.StartInfo.CreateNoWindow = true;
-            this.proc.StartInfo.RedirectStandardOutput = true;
+
+            #region This snipet does not accept | (pipe) arguments such as findstr
+            //this.proc.StartInfo.FileName = "openfiles.exe";
+            //this.proc.StartInfo.Arguments = "/query /FO CSV /v";
+            //this.proc.StartInfo.UseShellExecute = false;
+            //this.proc.StartInfo.CreateNoWindow = true;
+            //this.proc.StartInfo.RedirectStandardOutput = true;
+            #endregion
+
+            var p = new ProcessStartInfo("cmd.exe");
+            var sArgs = "/C openfiles.exe /query /FO CSV /v | findstr /i /v ~$*  ";
+            p.CreateNoWindow = true;
+            p.RedirectStandardOutput = true;
+            p.UseShellExecute = false;
+            p.Arguments = sArgs;
+            this.proc.StartInfo = p;
+
 
             this.files = new List<MetaFile>();
         }
@@ -53,7 +65,7 @@ namespace OpenFileTest
 
                         if (!fields[6].EndsWith("\\"))
                         {
-                            if (!fields[6].EndsWith("\\\r"))
+                            if (!fields[6].EndsWith("\\\r") && !fields[6].EndsWith("\r"))
                             {
                                 tempList.Add(new MetaFile
                                 {
@@ -80,8 +92,8 @@ namespace OpenFileTest
             }
 
             var metaFileComparer = new MetaFileComparer();
-            this.files.Except(tempList, metaFileComparer).ToList().ForEach(x => Console.WriteLine(x.FileName + " unlocked at " + DateTime.Now.ToShortTimeString())) ;
-            tempList.Except(this.files, metaFileComparer).ToList().ForEach(x => Console.WriteLine(x.FileName + " locked at " + DateTime.Now.ToShortTimeString()));
+            this.files.Except(tempList, metaFileComparer).ToList().ForEach(x => Console.WriteLine(x.FileName + " unlocked at " + DateTime.Now.ToShortTimeString() + " by " + x.User)) ;
+            tempList.Except(this.files, metaFileComparer).ToList().ForEach(x => Console.WriteLine(x.FileName + " locked at " + DateTime.Now.ToShortTimeString() + " by " + x.User));
             this.files = tempList;
         }
 

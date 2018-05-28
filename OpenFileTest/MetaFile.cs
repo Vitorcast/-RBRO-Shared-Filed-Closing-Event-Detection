@@ -35,8 +35,7 @@ namespace OpenFileTest
             }
         }
 
-        //public DateTime LastestLock { get; set; }
-        //public DateTime LatestRelease { get; set; }
+       
     }
 
     class MetaFileComparer : IEqualityComparer<MetaFile>
